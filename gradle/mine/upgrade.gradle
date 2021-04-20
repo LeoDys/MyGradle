@@ -1,0 +1,128 @@
+apply plugin: 'com.droidtitan.lintcleaner'
+
+def versionRemark = 'versionRemark'
+def versionRemarkEN = 'versionRemarkEN'
+def versionRemarkFR = 'versionRemarkFR'
+def versionForce = 'versionForce'
+
+//读取文件，并装进List。
+def version = new Version()
+version.versionCode = rootProject.ext.android["versionCode"]
+version.versionName = rootProject.ext.android["versionName"]
+version.versionTime = rootProject.ext.releaseVersionTime()
+// 读取versionRemark.properties
+def remarkMap = getVersionPropertiesRemark()
+
+if (!remarkMap.get(versionForce)) {
+    throw new RuntimeException('请填写是否强制升级')
+}
+
+if (!remarkMap.containsKey(versionRemark) || !remarkMap.containsKey(versionRemarkEN) || !remarkMap.containsKey(versionRemarkFR)) {
+    throw new RuntimeException('Remark字段名有误,请检查')
+}
+if (!remarkMap.get(versionRemark) && !remarkMap.get(versionRemarkEN) && !remarkMap.get(versionRemarkFR)) {
+    throw new RuntimeException('Remark不能全部为空')
+}
+version.versionRemark = remarkMap.get(versionRemark)
+version.versionRemarkEN = remarkMap.get(versionRemarkEN)
+version.versionRemarkFR = remarkMap.get(versionRemarkFR)
+version.versionForce = remarkMap.get(versionForce)
+version.versionOsType = '0' /*设备类型必填android：0，IOS：1**/
+
+def writeStr = getVersionXml(version)
+//构建一个任务 makeJacaDir，刷新一下就可以在gradle的Tasks的other看到这个任务
+task assetsXmlTask() {
+    //定义一个数组，数组里的是目录路径
+    //doFirst在task之前执行
+    doFirst {
+        //遍历数组，调用createDir闭包，创建目录
+        File dirAssets = file(new File(getVersionAsstesPath()))
+        if (!dirAssets.exists()) {
+            dirAssets.mkdir()
+        }
+        File dir = file(new File(getVersionFilePath()))
+        if (!dir.exists()) {
+            dir.createNewFile()
+        }
+    }
+    doLast {
+        File dir1 = file(new File(getVersionFilePath()))
+        dir1.withWriter('UTF-8') { writer ->
+            writer.append(writeStr)
+            writer.flush()
+            writer.close()
+        }
+    }
+}
+
+// gradle 4
+//if (rootProject.ext.config['execute'])
+//    assetsXmlTask.execute() // execute()表示执行task
+
+// gradle 6
+if (rootProject.switches['execute'])
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn 'assetsXmlTask'
+    }
+
+/**
+ * 获取备注信息
+ */
+def getVersionPropertiesRemark() {
+    def props = new Properties()
+    def remarkMap = new HashMap<String, String>()
+    props.load(new BufferedReader(new InputStreamReader(new FileInputStream(file(new File(getVersionPropertiesPath()))), 'UTF-8')))
+    Enumeration e = props.keys()
+    def key = ""
+    while (e.hasMoreElements()) {
+        key = e.nextElement()
+        remarkMap.put(key, props.get(key).toString().trim())
+    }
+    return remarkMap
+}
+/**
+ * 获取version的xml
+ * @param version
+ * @return
+ */
+def getVersionXml(def version) {
+    def strXml = new StringWriter()
+    strXml.append("<?xml version='1.0' encoding='utf-8' standalone='yes' ?>").append('\n')
+    groovy.xml.MarkupBuilder mb = new groovy.xml.MarkupBuilder(strXml)
+    mb.version() {
+        versionCode(version.getVersionCode())
+        versionName(version.getVersionName())
+        versionTime(version.getVersionTime())
+        versionRemarks {
+            versionRemark(langCode: "zh-CN", version.getVersionRemark())    // 中文
+            versionRemark(langCode: "en-US", version.getVersionRemarkEN())  // 英文
+            versionRemark(langCode: "fr-FR", version.getVersionRemarkFR())  // 法文
+        }
+        versionForce(version.getVersionForce())
+        versionOsType(version.getVersionOsType())
+    }
+    return strXml.toString()
+}
+
+def getVersionFilePath() {
+    return 'src\\main\\assets\\version'.concat("_").concat((rootProject.ext.android["versionName"]).toString()).concat('.xml')
+}
+
+static def getVersionPropertiesPath() {
+    return 'src\\main\\versionRemark.properties'
+}
+
+static def getVersionAsstesPath() {
+    return 'src\\main\\assets\\'
+}
+
+class Version {
+    String versionCode
+    String versionName
+    String versionTime
+    String versionRemark
+    String versionRemarkEN
+    String versionRemarkFR
+    String versionForce
+    String versionOsType
+}

@@ -1,0 +1,31 @@
+ext {
+    //获取布局文件路径
+    listSubFile = {
+        def resFolder = 'app/src/main/res/layouts'
+        def files = file(resFolder).listFiles()
+        def folders = []
+        files.each {
+            item -> folders.add(item.absolutePath)
+        }
+        folders.add(file(resFolder).parentFile.absolutePath)
+        return folders
+    }
+
+    //获取系统日期
+    releaseVersionTime = {
+        def releaseTime = ''
+        if ('' == releaseTime) {
+            releaseTime = new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+8"))
+        }
+        return releaseTime
+    }
+    //是否是debug运行
+    isDebug = {
+        def taskNames = gradle.startParameter.taskNames
+        for (tn in taskNames) {
+            if ((tn.contains("install") || tn.contains("assemble")) && tn.contains("Debug")) {
+                return true
+            }
+        }
+    }
+}

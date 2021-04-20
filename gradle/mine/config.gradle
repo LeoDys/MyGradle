@@ -1,0 +1,31 @@
+ext {
+    android = [
+            applicationId:"com.leo.mygradle",
+            compileSdkVersion: 28,
+            buildToolsVersion: "28.0.2",
+            minSdkVersion    : 19,
+            targetSdkVersion : 28,
+            versionCode      : 73,
+            versionName      : "1.0.0.73"
+    ]
+    version = [
+            androidSupportSdkVersion    : "26.0.0",
+            retrofitSdkVersion          : "2.4.0",
+            dagger2SdkVersion           : "2.19",
+            butterknifeSdkVersion       : "8.8.1",
+            rxlifecycleSdkVersion       : "1.0",
+            rxlifecycle2SdkVersion      : "2.2.2",
+            espressoSdkVersion          : "3.0.1",
+            canarySdkVersion            : "1.5.4",
+            smartRefreshLayoutSdkVersion: "1.0.5.1",
+            glideSdkVersion             : "4.8.0"
+    ]
+    dependencies = [
+            // support
+            "appcompat-v7"                 : "com.android.support:appcompat-v7:${version["androidSupportSdkVersion"]}",
+            "support-v4"                   : "com.android.support:support-v4:${version["androidSupportSdkVersion"]}",
+            "design"                       : "com.android.support:design:${version["androidSupportSdkVersion"]}",
+            "annotations"                  : "com.android.support:support-annotations:${version["androidSupportSdkVersion"]}",
+            "recyclerview-v7"              : "com.android.support:recyclerview-v7:${version["androidSupportSdkVersion"]}",
+    ]
+}
