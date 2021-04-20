@@ -79,7 +79,7 @@ android {
             resValue("string", "app_name", "测试版Gradle")
 
             //混淆
-            minifyEnabled false
+            minifyEnabled true
 
             //前一部分代表系统默认的android程序的混淆文件，该文件已经包含了基本的混淆声明，后一个文件是自己的定义混淆文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -125,10 +125,10 @@ android {
         }
     }
 
-    /**
-     * 打包固定名称结构
-     * 这种方式是比较简单的配置方式
-     */
+//    /**
+//     * 打包固定名称结构
+//     * 这种方式是比较简单的配置方式
+//     */
 //    applicationVariants.all { variant ->
 //        variant.outputs.all { output ->
 //            def outputFile = output.outputFile
@@ -151,7 +151,8 @@ android {
      */
     applicationVariants.all { variant ->
         // 打包完成后复制到的目录
-        def outputFileDir = "${project.projectDir.absolutePath}/${variant.buildType.name}/${variant.flavorName}/${variant.versionName}"
+        def outputFileDir = "${project.projectDir.absolutePath}/${variant.buildType.name}/" +
+                "${variant.flavorName}/${variant.versionName}"
         //  此处可以根据需求配置相关渠道的默认输出路径,默认输出路径为“app/build/outputs/apk/${variant.flavorName}“”
         // if (variant.buildType.name == "release"&&variant.flavorName == "online") {
         //     println("outputDirectory1:${variant.getPackageApplicationProvider().get().outputDirectory}")
@@ -166,24 +167,22 @@ android {
                 today.format('yyyyMMddhhmm') +
                 ".apk"
         // 不同版本更改输出apk文件名方式
-        /**
-         *  gradleVersion 小于4.0
-         */
-        /*  variant.getPackageApplicationProvider().get().outputScope.apkDatas.forEach { apkData ->
-              apkData.outputFileName = path
-          }*/
-        /*      *//**
-         *  gradleVersion 大于4.0
-         *//*
-        variant.outputs.forEach {
-            it.apkData.outputFileName = path
-        }*/
-        /**
-         *  gradleVersion 大于4.1
-         */
-        variant.outputs.forEach {
-            it.outputFileName = path
-        }
+
+        // gradleVersion 小于4.0
+        // variant.getPackageApplicationProvider().get().outputScope.apkDatas.forEach { apkData ->
+        //       apkData.outputFileName = path
+        // }
+        //
+        // gradleVersion 大于4.0
+        // variant.outputs.forEach {
+        //     it.apkData.outputFileName = path
+        // }
+
+        // gradleVersion 大于4.1
+         variant.outputs.forEach {
+             it.outputFileName = path
+         }
+
         // 打包完成后做的一些事,复制apk到指定文件夹,复制mapping等
         variant.assemble.doLast {
             File out = new File(outputFileDir)
@@ -195,12 +194,13 @@ android {
                         String fileName -> "${variant.buildType.name}-${variant.flavorName}-mapping-${variant.versionName}.txt"
                     }
                 }
-                variant.outputs.forEach { file ->
-                    copy {
-                        from file.outputFile
-                        into out
+                if (variant.outputs)
+                    variant.outputs.forEach { file ->
+                        copy {
+                            from file.outputFile
+                            into out
+                        }
                     }
-                }
             }
         }
     }

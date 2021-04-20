@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<version>
+  <versionCode>73</versionCode>
+  <versionName>1.0.0.73</versionName>
+  <versionTime>20210420</versionTime>
+  <versionRemarks>
+    <versionRemark langCode='zh-CN'>1.中文备注1 2.中文备注2 3.中文备注3</versionRemark>
+    <versionRemark langCode='en-US'>1.英文备注1 2.英文备注2 3.英文备注3</versionRemark>
+    <versionRemark langCode='fr-FR'>1.法文备注1 2.法文备注2 3.法文备注3</versionRemark>
+  </versionRemarks>
+  <versionForce>1</versionForce>
+  <versionOsType>0</versionOsType>
+</version>
