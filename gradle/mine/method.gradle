@@ -12,6 +12,17 @@ ext {
         return folders
     }
 
+    //获取布局文件路径
+    listSubFilePath = { path ->
+        def files = file(path).listFiles()
+        def folders = []
+        files.each {
+            item -> folders.add(item.absolutePath)
+        }
+        folders.add(file(path).parentFile.absolutePath)
+        return folders
+    }
+
     //获取系统日期
     releaseVersionTime = {
         def releaseTime = ''
