@@ -1,4 +1,4 @@
-// 开关配置gradle
+/*项目 开关 gradle配置*/
 ext {
     switches = [
             // 现在 Gradle

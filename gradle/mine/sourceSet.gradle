@@ -1,0 +1,18 @@
+/*项目不用风味包读取不同资源文件的gradle配置*/
+ext {
+    android {
+        /*自定义项目目录结构*/
+        sourceSets {
+            main {
+                res.srcDirs = rootProject.ext.listSubFile()
+            }
+            /*不用 风味包 读取不同的assets文件*/
+            f_huawei {
+                assets.srcDirs = ['src/f_huawei/assets']
+            }
+            f_xiaomi {
+                assets.srcDirs = ['src/f_xiaomi/assets']
+            }
+        }
+    }
+}

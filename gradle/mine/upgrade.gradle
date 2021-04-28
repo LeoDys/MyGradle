@@ -1,3 +1,4 @@
+/*项目版本升级的gradle配置*/
 apply plugin: 'com.droidtitan.lintcleaner'
 
 def versionRemark = 'versionRemark'

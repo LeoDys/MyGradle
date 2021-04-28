@@ -1,3 +1,4 @@
+/*项目base方法的gradle配置*/
 ext {
     //获取布局文件路径
     listSubFile = {

@@ -1,11 +1,12 @@
 apply plugin: 'com.android.application'
 apply from: "../gradle/mine/upgrade.gradle"
+apply from: "../gradle/mine/packaging.gradle"
+apply from: "../gradle/mine/sourceSet.gradle"
 
 /*也可以不写直接引入 但是这样写规范些  易读*/
 def androidArr = rootProject.ext.android
 def switchArr = rootProject.ext.switches
 def dependenciesArr = rootProject.ext.dependencies
-def urlArr = rootProject.ext.url
 
 android {
     compileSdkVersion androidArr.compileSdkVersion
@@ -47,178 +48,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
         sourceCompatibility JavaVersion.VERSION_1_8
     }
-
-    // debug和release两种签名
-    signingConfigs {
-        debugConfig {
-            storeFile file("../SmartStorage_Pad.jks")
-            storePassword "123456"
-            keyAlias "SmartStorage_Pad"
-            keyPassword "123456"
-        }
-
-        releaseConfig {
-            storeFile file("../SmartStorage_Pad.jks")
-            storePassword "123456"
-            keyAlias "SmartStorage_Pad"
-            keyPassword "123456"
-        }
-    }
-
-    /*版本类型*/
-    buildTypes {
-        //调试环境
-        debug {
-            // 测试环境可调试
-            debuggable true
-            //debug标识，方便项目里面一些只在debug模式下生效代码做区分标识
-            // buildConfigField("boolean", "isDebug", "true")
-            //项目里面，测试服务器地址
-            buildConfigField("String", "HOST", "\"${urlArr.release}\"")
-            //配置了该属性，需要在values中strings.xml里面把app_name删掉，否则编译会报错，测试版本的APK名字，以区分正式测试不同版本
-            resValue("string", "app_name", "测试版Gradle")
-
-            //混淆
-            minifyEnabled true
-
-            //前一部分代表系统默认的android程序的混淆文件，该文件已经包含了基本的混淆声明，后一个文件是自己的定义混淆文件
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            //使用上面签名配置中的debugConfig配置
-            signingConfig signingConfigs.debugConfig
-            //区分debug版本的包名，会自动在正式包名后面带上.debug，方便测试服务器版本和正式服务器版本APK同时安装
-            applicationIdSuffix '.debug'
-        }
-        //发布环境
-        release {
-            // 测试环境可调试
-            zipAlignEnabled true
-            shrinkResources true
-            debuggable false
-            // buildConfigField("boolean", "isDebug", "false")
-            //项目里面，正式服务器地址
-            buildConfigField("String", "HOST", "\"${urlArr.debug}\"")
-            //配置了该属性，需要在values中strings.xml里面把app_name删掉，否则编译会报错，正式版本的APK名字，以区分正式测试不同版本
-            resValue("string", "app_name", "正式版Gradle")
-
-            //混淆
-            minifyEnabled true
-
-            //前一部分代表系统默认的android程序的混淆文件，该文件已经包含了基本的混淆声明，后一个文件是自己的定义混淆文件
-            //混淆配置文件
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-            //使用上面签名配置中的releaseConfig配置
-            signingConfig signingConfigs.releaseConfig
-        }
-    }
-
-    /**
-     * 版本类型下的风味包 这里面可以控制不同包里面的显示的东西不一样
-     */
-    productFlavors {
-        f_huawei {
-
-        }
-
-        f_xiaomi {
-
-        }
-    }
-
-//    /**
-//     * 打包固定名称结构
-//     * 这种方式是比较简单的配置方式
-//     */
-//    applicationVariants.all { variant ->
-//        variant.outputs.all { output ->
-//            def outputFile = output.outputFile
-//            if (outputFile != null && outputFile.name.endsWith('.apk')) {
-//                def build_type = ''
-//                if (variant.buildType.name == 'release') {
-//                    build_type = 'release'
-//                } else if (variant.buildType.name == 'debug') {
-//                    build_type = 'debug'
-//                }
-//                def fileName = "Test_${defaultConfig.versionName}_${defaultConfig.versionCode}_${releaseVersionTime()}_${variant.productFlavors[0].name}_${build_type}.apk"
-//                // output.outputFile = new File(outputFile.parent, fileName)  outputFile变为只读，不能修改输出的名称所以报错
-//                outputFileName = fileName
-//            }
-//        }
-//    }
-
-    /**
-     * 相比上面的  这个配置的比较全
-     */
-    applicationVariants.all { variant ->
-        // 打包完成后复制到的目录
-        def outputFileDir = "${project.projectDir.absolutePath}/${variant.buildType.name}/" +
-                "${variant.flavorName}/${variant.versionName}"
-        //  此处可以根据需求配置相关渠道的默认输出路径,默认输出路径为“app/build/outputs/apk/${variant.flavorName}“”
-        // if (variant.buildType.name == "release"&&variant.flavorName == "online") {
-        //     println("outputDirectory1:${variant.getPackageApplicationProvider().get().outputDirectory}")
-        //     variant.getPackageApplicationProvider().get().outputDirectory = new File(outputFileDir)
-        // }
-        //确定输出文件名
-        def today = new Date()
-        def path = ((project.name != "app") ? project.name : rootProject.name.replace(" ", "")) + "_" +
-                variant.flavorName + "_" +
-                variant.buildType.name + "_" +
-                variant.versionName + "_" +
-                today.format('yyyyMMddhhmm') +
-                ".apk"
-        // 不同版本更改输出apk文件名方式
-
-        // gradleVersion 小于4.0
-        // variant.getPackageApplicationProvider().get().outputScope.apkDatas.forEach { apkData ->
-        //       apkData.outputFileName = path
-        // }
-        //
-        // gradleVersion 大于4.0
-        // variant.outputs.forEach {
-        //     it.apkData.outputFileName = path
-        // }
-
-        // gradleVersion 大于4.1
-         variant.outputs.forEach {
-             it.outputFileName = path
-         }
-
-        // 打包完成后做的一些事,复制apk到指定文件夹,复制mapping等
-        variant.assemble.doLast {
-            File out = new File(outputFileDir)
-            copy {
-                if (variant.mappingFile) {
-                    from variant.mappingFile
-                    into out
-                    rename {
-                        String fileName -> "${variant.buildType.name}-${variant.flavorName}-mapping-${variant.versionName}.txt"
-                    }
-                }
-                if (variant.outputs)
-                    variant.outputs.forEach { file ->
-                        copy {
-                            from file.outputFile
-                            into out
-                        }
-                    }
-            }
-        }
-    }
-
-    /*自定义项目目录结构*/
-    sourceSets {
-        main {
-            res.srcDirs = rootProject.ext.listSubFile()
-        }
-        /*不用 风味包 读取不同的assets文件*/
-        f_huawei {
-            assets.srcDirs = ['src/f_huawei/assets']
-        }
-        f_xiaomi {
-            assets.srcDirs = ['src/f_xiaomi/assets']
-        }
-    }
-
 }
 
 dependencies {
